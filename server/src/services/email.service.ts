@@ -192,7 +192,7 @@ export const sendWelcomeEmail = async (
           <p>You can now start using ${envConfig.appName} to have intelligent conversations with AI.</p>
           
           <center>
-            <a href="${envConfig.appUrl}" class="button">Start Chatting Now</a>
+            <a href="${envConfig.appUrl}/chat" class="button">Start Chatting Now</a>
           </center>
           
           <p>If you have any questions, feel free to reach out to our support team.</p>
