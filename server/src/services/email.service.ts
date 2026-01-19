@@ -5,7 +5,7 @@ import { envConfig } from '../env-config/config';
 const transporter = nodemailer.createTransport({
   host: envConfig.emailHost,
   port: Number(envConfig.emailPort),
-  secure: false, // true for 465, false for other ports
+  secure: true, // true for 465, false for other ports
   auth: {
     user: envConfig.emailUser,
     pass: envConfig.appPass,
