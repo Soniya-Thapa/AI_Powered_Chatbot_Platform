@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -8,6 +8,7 @@ import { verifyCode, clearError } from '@/lib/redux/slices/auth.slice';
 import { authAPI } from '@/lib/api';
 import { Bot, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+export const dynamic = "force-dynamic";
 
 export default function VerifyPage() {
   const [code, setCode] = useState(['', '', '', '', '', '']);
