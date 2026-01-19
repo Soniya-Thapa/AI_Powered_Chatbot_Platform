@@ -19,6 +19,7 @@ export const envConfig = {
 
   //gemini
   geminiApiKey: process.env.GEMINI_API_KEY,
-  geminiModel: process.env.GEMINI_MODEL
+  geminiModel: process.env.GEMINI_MODEL,
 
+  apiUrl : process.env.NEXT_PUBLIC_API_URL,
 }

@@ -39,7 +39,7 @@ model Chat {
 model Message {
   id        String       @id @default(uuid())
   chatId    String
-  chat      Chat      @relation(fields: [chatId], references: [id])
+  chat      Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
   sender    MessageSender    // "user" or "ai"
   content   String
   createdAt DateTime  @default(now())
