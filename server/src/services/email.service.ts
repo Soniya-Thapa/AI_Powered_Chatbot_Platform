@@ -1,21 +1,29 @@
 import nodemailer from 'nodemailer';
 import { envConfig } from '../env-config/config';
 
-// Create transporter
+// Create transporter with improved configuration
 const transporter = nodemailer.createTransport({
   host: envConfig.emailHost,
   port: Number(envConfig.emailPort),
   secure: false, // true for 465, false for other ports
   auth: {
     user: envConfig.emailUser,
-    pass:envConfig.appPass,
+    pass: envConfig.appPass,
   },
+  // Add these for better reliability
+  tls: {
+    rejectUnauthorized: false, // Important for some hosting environments
+  },
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 5000,
+  socketTimeout: 10000,
 });
 
-// Verify connection
+// Verify connection (non-blocking)
 transporter.verify((error, success) => {
   if (error) {
-    console.error('Email configuration error:', error);
+    console.error('⚠️ Email configuration error:', error.message);
+    console.log('📧 Emails will be logged to console instead');
   } else {
     console.log('✅ Email service is ready');
   }
@@ -89,7 +97,7 @@ export const sendVerificationEmail = async (
         </head>
         <body>
           <div class="header">
-            <h1>🤖 ${envConfig.appName|| 'AI Chatbot'}</h1>
+            <h1>🤖 ${envConfig.appName || 'AI Chatbot'}</h1>
             <p>Email Verification</p>
           </div>
           
@@ -132,11 +140,15 @@ If you didn't request this code, please ignore this email.
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Verification email sent:', info.messageId);
+    console.log('✅ Verification email sent successfully:', info.messageId);
     return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error('❌ Error sending verification email:', error);
-    throw new Error('Failed to send verification email');
+  } catch (error: any) {
+    console.error('❌ Error sending verification email:', error.message);
+    // Log the code for manual verification
+    console.log(`📧 VERIFICATION CODE for ${email}: ${verificationCode}`);
+    console.log('⚠️ Email failed but code is stored in database');
+    // Don't throw - return error info instead
+    return { success: false, error: error.message };
   }
 };
 
@@ -212,8 +224,8 @@ export const sendWelcomeEmail = async (
     const info = await transporter.sendMail(mailOptions);
     console.log('✅ Welcome email sent:', info.messageId);
     return { success: true };
-  } catch (error) {
-    console.error('❌ Error sending welcome email:', error);
+  } catch (error: any) {
+    console.error('⚠️ Error sending welcome email:', error.message);
     // Don't throw error - welcome email is not critical
     return { success: false };
   }

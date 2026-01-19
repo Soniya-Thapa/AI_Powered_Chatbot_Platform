@@ -1,4 +1,3 @@
-
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -13,8 +12,8 @@ const generateVerificationCode = (): string => {
 
 const registerUser = async (req: Request, res: Response): Promise<Response> => {
   try {
-
     const { name, email, password } = req.body;
+    
     if (!email || !name || !password) {
       return res.status(400).json({
         success: false,
@@ -40,13 +39,16 @@ const registerUser = async (req: Request, res: Response): Promise<Response> => {
           }
         });
 
-        // Send email with code
-        // console.log(`Verification code for ${email}: ${verificationCode}`);
-        await sendVerificationEmail(email, verificationCode, existingUser.name);
+        // Try to send email - don't fail if it doesn't work
+        const emailResult = await sendVerificationEmail(email, verificationCode, existingUser.name);
+        
+        const message = emailResult.success 
+          ? "Verification code sent to your email"
+          : "Verification code generated. Check server logs if email not received.";
 
         return res.status(200).json({
           success: true,
-          message: "Verification code sent to your email",
+          message,
           data: {
             email: existingUser.email,
             needsVerification: true
@@ -59,7 +61,6 @@ const registerUser = async (req: Request, res: Response): Promise<Response> => {
         message: "User with this email already exists"
       });
     }
-
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -84,15 +85,28 @@ const registerUser = async (req: Request, res: Response): Promise<Response> => {
         email: true,
         isVerified: true,
       }
-
     });
-    //  Send email with code
-    // console.log(`Verification code for ${email}: ${verificationCode}`);
-    await sendVerificationEmail(email, verificationCode, name);
+
+    console.log('✅ User created successfully:', user.id);
+
+    // Try to send email - but don't fail registration if email fails
+    const emailResult = await sendVerificationEmail(email, verificationCode, name);
+    
+    if (emailResult.success) {
+      console.log('✅ Verification email sent to:', email);
+    } else {
+      console.log('⚠️ Email failed but registration succeeded');
+      console.log('📧 Verification code for', email, ':', verificationCode);
+    }
+
+    // Always return success - user is registered
+    const message = emailResult.success
+      ? "Registration successful! Please check your email for verification code."
+      : "Registration successful! Verification code has been generated.";
 
     return res.status(201).json({
       success: true,
-      message: "Registration successful! Please check your email for verification code.",
+      message,
       data: {
         ...user,
         needsVerification: true,
@@ -100,7 +114,7 @@ const registerUser = async (req: Request, res: Response): Promise<Response> => {
     });
 
   } catch (error) {
-    console.error("Error in the register controller: ", error)
+    console.error("Error in the register controller: ", error);
     return res.status(500).json({
       success: false,
       message: "Registration failed"
@@ -181,7 +195,9 @@ const verifyCode = async (req: Request, res: Response): Promise<Response> => {
       }
     });
 
-    // ✅ Send welcome email
+    console.log('✅ User verified successfully:', user.email);
+
+    // Try to send welcome email (non-critical)
     await sendWelcomeEmail(email, user.name);
 
     return res.status(200).json({
@@ -208,7 +224,6 @@ const resendCode = async (req: Request, res: Response): Promise<Response> => {
         message: "Email is required"
       });
     }
-
 
     const user = await prisma.user.findUnique({
       where: { email }
@@ -240,13 +255,16 @@ const resendCode = async (req: Request, res: Response): Promise<Response> => {
       }
     });
 
-    //  Send email with new code
-    // console.log(`New verification code for ${email}: ${verificationCode}`);
-    await sendVerificationEmail(email, verificationCode, user.name);
+    // Try to send email - don't fail if it doesn't work
+    const emailResult = await sendVerificationEmail(email, verificationCode, user.name);
+    
+    const message = emailResult.success
+      ? "New verification code sent to your email"
+      : "New verification code generated. Check server logs if email not received.";
 
     return res.status(200).json({
       success: true,
-      message: "New verification code sent to your email"
+      message
     });
 
   } catch (error) {
@@ -268,6 +286,7 @@ const loginUser = async (req: Request, res: Response): Promise<Response> => {
         message: "Email and password are required"
       });
     }
+    
     const user = await prisma.user.findUnique({
       where: { email }
     });
@@ -362,8 +381,8 @@ const forgotPassword = async (req: Request, res: Response): Promise<Response> =>
       }
     });
 
-    // Send email
-    await sendVerificationEmail(email, resetCode, user.name); // reuse email service
+    // Try to send email
+    await sendVerificationEmail(email, resetCode, user.name);
 
     return res.status(200).json({
       success: true,
@@ -455,4 +474,4 @@ export {
   forgotPassword,
   resetPassword,
   logoutUser
-}
+};
