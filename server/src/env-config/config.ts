@@ -9,12 +9,14 @@ export const envConfig = {
   jwtSecretKey: process.env.JWT_SECRET,
 
   //email config
-  emailHost: process.env.EMAIL_HOST,
-  emailPort: process.env.EMAIL_PORT,
-  emailSecure: process.env.EMAIL_SECURE === 'true', // ✅ Now it's a boolean
-  emailUser: process.env.EMAIL_USER,
-  appPass: process.env.EMAIL_PASSWORD,
+  // emailHost: process.env.EMAIL_HOST,
+  // emailPort: process.env.EMAIL_PORT,
+  // emailSecure: process.env.EMAIL_SECURE === 'true', // ✅ Now it's a boolean
+  // emailUser: process.env.EMAIL_USER,
+  // appPass: process.env.EMAIL_PASSWORD,
   emailFrom: process.env.EMAIL_FROM,
+  resendApiKey : process.env.RESEND_API_KEY,
+
   appName: process.env.APP_NAME,
   appUrl: process.env.APP_URL,
 

@@ -1,11 +1,12 @@
 import { Resend } from 'resend';
 import { envConfig } from '../env-config/config';
+import { en } from 'zod/v4/locales';
 
 // Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(envConfig.resendApiKey);
 
 // Verify Resend is configured
-if (!process.env.RESEND_API_KEY) {
+if (!envConfig.resendApiKey) {
   console.error('⚠️ RESEND_API_KEY not found in environment variables');
   console.log('📧 Emails will be logged to console instead');
 } else {
