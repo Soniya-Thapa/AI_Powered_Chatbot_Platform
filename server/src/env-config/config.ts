@@ -23,8 +23,6 @@ export const envConfig = {
 
   apiUrl: process.env.NEXT_PUBLIC_API_URL,
 
-  clientUrlDev: process.env.CLIENT_URL_DEV,
-  clientUrlProd1: process.env.CLIENT_URL_PROD_1,
-  clientUrlProd2: process.env.CLIENT_URL_PROD_2,
+  clientUrls: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : [],
   nodeEnv: process.env.NODE_ENV || 'development'
 }

@@ -9,22 +9,21 @@ import { envConfig } from "./env-config/config";
 const app = express();
 
 // Determine allowed origins based on env
-const allowedOrigins = envConfig.nodeEnv === 'production' 
-  ? [envConfig.clientUrlProd1, envConfig.clientUrlProd2] 
-  : [envConfig.clientUrlDev];
+const allowedOrigins = envConfig.clientUrls;
 
 // Enable CORS (MUST be before routes)
 app.use(
   cors({
-    origin: function(origin, callback){
-      if (!origin) return callback(null, true); // allow Postman or server requests
+    origin: function(origin, callback) {
+      if (!origin) return callback(null, true); // allow Postman / server requests
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        console.log("Blocked by CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true,
+    credentials: true
   })
 );
 // To parse JSON bodies
