@@ -1,16 +1,15 @@
-import { Resend } from 'resend';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const brevo = require('@getbrevo/brevo');
 import { envConfig } from '../env-config/config';
-import { en } from 'zod/v4/locales';
 
-// Initialize Resend
-const resend = new Resend(envConfig.resendApiKey);
+const apiInstance = new brevo.TransactionalEmailsApi();
 
-// Verify Resend is configured
-if (!envConfig.resendApiKey) {
-  console.error('⚠️ RESEND_API_KEY not found in environment variables');
-  console.log('📧 Emails will be logged to console instead');
+if (process.env.BREVO_API_KEY) {
+  const apiKey = apiInstance.authentications['apiKey'];
+  apiKey.apiKey = process.env.BREVO_API_KEY;
+  console.log('✅ Email service (Brevo) is ready');
 } else {
-  console.log('✅ Email service (Resend) is ready');
+  console.error('⚠️ BREVO_API_KEY not found');
 }
 
 // Send verification code email
@@ -119,26 +118,23 @@ If you didn't request this code, please ignore this email.
 © ${new Date().getFullYear()} ${envConfig.appName || 'AI Chatbot Platform'}
     `.trim();
 
-    const { data, error } = await resend.emails.send({
-      from: envConfig.emailFrom || 'AI Chatbot <onboarding@resend.dev>',
-      to: email,
-      subject: `${verificationCode} is your verification code`,
-      html: htmlContent,
-      text: textContent,
-    });
+    const sendSmtpEmail = new brevo.SendSmtpEmail();
+    sendSmtpEmail.sender = { 
+      email: envConfig.emailFrom?.match(/<(.+)>/)?.[1] || 'ayinos.apaht143@gmail.com', 
+      name: envConfig.appName || 'AI Chatbot' 
+    };
+    sendSmtpEmail.to = [{ email: email }];
+    sendSmtpEmail.subject = `${verificationCode} is your verification code`;
+    sendSmtpEmail.htmlContent = htmlContent;
+    sendSmtpEmail.textContent = textContent;
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    console.log('✅ Verification email sent successfully:', data?.id);
-    return { success: true, messageId: data?.id };
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log('✅ Verification email sent successfully');
+    return { success: true, messageId: response?.messageId };
   } catch (error: any) {
     console.error('❌ Error sending verification email:', error.message);
-    // Log the code for manual verification
     console.log(`📧 VERIFICATION CODE for ${email}: ${verificationCode}`);
     console.log('⚠️ Email failed but code is stored in database');
-    // Don't throw - return error info instead
     return { success: false, error: error.message };
   }
 };
@@ -207,24 +203,22 @@ export const sendWelcomeEmail = async (
       </html>
     `;
 
-    const { data, error } = await resend.emails.send({
-      from: envConfig.emailFrom || 'AI Chatbot <onboarding@resend.dev>',
-      to: email,
-      subject: `Welcome to ${envConfig.appName}! 🎉`,
-      html: htmlContent,
-    });
+    const sendSmtpEmail = new brevo.SendSmtpEmail();
+    sendSmtpEmail.sender = { 
+      email: envConfig.emailFrom?.match(/<(.+)>/)?.[1] || 'ayinos.apaht143@gmail.com', 
+      name: envConfig.appName || 'AI Chatbot' 
+    };
+    sendSmtpEmail.to = [{ email: email }];
+    sendSmtpEmail.subject = `Welcome to ${envConfig.appName}! 🎉`;
+    sendSmtpEmail.htmlContent = htmlContent;
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    console.log('✅ Welcome email sent:', data?.id);
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log('✅ Welcome email sent successfully');
     return { success: true };
   } catch (error: any) {
     console.error('⚠️ Error sending welcome email:', error.message);
-    // Don't throw error - welcome email is not critical
     return { success: false };
   }
 };
 
-export default resend;
+export default apiInstance;
